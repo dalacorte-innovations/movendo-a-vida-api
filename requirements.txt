@@ -1,0 +1,10 @@
+asgiref
+Django
+django-cors-headers
+django-debug-toolbar
+django-filter
+djangorestframework
+pytz
+sqlparse
+psycopg2-binary
+python-dotenv
