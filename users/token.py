@@ -1,4 +1,3 @@
-# views.py
 from rest_framework.authtoken.models import Token
 from rest_framework.response import Response
 from rest_framework import status
@@ -7,15 +6,9 @@ from django.contrib.auth import authenticate
 from allauth.socialaccount.models import SocialAccount
 from django.utils.translation import gettext_lazy as _
 from rest_framework.permissions import AllowAny
-from google.oauth2 import id_token
-from google.auth.transport import requests as google_requests
-
-from django.conf import settings
+import requests
 
 class CombinedLoginView(APIView):
-    """
-    View para processar login com `username` e `password` ou login com Google OAuth.
-    """
     permission_classes = [AllowAny]
 
     def post(self, request):
@@ -36,30 +29,66 @@ class CombinedLoginView(APIView):
             else:
                 return Response({"error": _("Invalid credentials")}, status=status.HTTP_401_UNAUTHORIZED)
 
-        elif 'id_token' in request.data:
-            id_token_google = request.data.get('id_token')
+        elif 'access_token' in request.data:
+            access_token = request.data.get('access_token')
 
             try:
-                id_info = id_token.verify_oauth2_token(id_token_google, google_requests.Request(), settings.SOCIALACCOUNT_PROVIDERS['google']['OAUTH2_CLIENT_ID'])
+                response = requests.get(
+                    'https://www.googleapis.com/oauth2/v3/userinfo',
+                    headers={'Authorization': f'Bearer {access_token}'}
+                )
+                user_info = response.json()
 
-                if 'sub' in id_info:
-                    try:
-                        social_account = SocialAccount.objects.get(uid=id_info['sub'], provider='google')
-                        user = social_account.user
+                if response.status_code != 200 or 'email' not in user_info:
+                    return Response({'error': 'Failed to retrieve user information from Google.'}, status=status.HTTP_400_BAD_REQUEST)
 
-                        token, created = Token.objects.get_or_create(user=user)
+                social_account = SocialAccount.objects.filter(uid=user_info['sub'], provider='google').first()
 
-                        return Response({
-                            'token': token.key,
-                            'name': f'{user.first_name} {user.last_name}',
-                            'restricted_access': user.restricted_access,
-                            'user_type': user.user_type
-                        }, status=status.HTTP_200_OK)
+                if social_account:
+                    user = social_account.user
+                    token, created = Token.objects.get_or_create(user=user)
 
-                    except SocialAccount.DoesNotExist:
-                        return Response({'error': 'No social account found for this user'}, status=status.HTTP_404_NOT_FOUND)
+                    return Response({
+                        'token': token.key,
+                        'name': f'{user.first_name} {user.last_name}',
+                        'restricted_access': user.restricted_access,
+                        'user_type': user.user_type
+                    }, status=status.HTTP_200_OK)
+                else:
+                    return Response({'error': 'No social account found for this user'}, status=status.HTTP_404_NOT_FOUND)
 
-            except ValueError as e:
+            except requests.RequestException as e:
+                return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+        elif 'facebook_token' in request.data:
+            facebook_token = request.data.get('facebook_token')
+
+            try:
+                response = requests.get(
+                    f'https://graph.facebook.com/me?fields=id,name,email&access_token={facebook_token}'
+                )
+                user_info = response.json()
+
+                if response.status_code != 200 or 'email' not in user_info:
+                    return Response({'error': 'Failed to retrieve user information from Facebook.'}, status=status.HTTP_400_BAD_REQUEST)
+
+                # Verifique o social account pelo UID (ID do Facebook) e provider 'facebook'
+                social_account = SocialAccount.objects.filter(uid=user_info['id'], provider='facebook').first()
+
+                if social_account:
+                    user = social_account.user
+                    token, created = Token.objects.get_or_create(user=user)
+
+                    return Response({
+                        'token': token.key,
+                        'name': f'{user.first_name} {user.last_name}',
+                        'restricted_access': user.restricted_access,
+                        'user_type': user.user_type
+                    }, status=status.HTTP_200_OK)
+                else:
+                    return Response({'error': 'No social account found for this user'}, status=status.HTTP_404_NOT_FOUND)
+
+            except requests.RequestException as e:
                 return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
         return Response({"error": _("Invalid login request")}, status=status.HTTP_400_BAD_REQUEST)

@@ -30,7 +30,7 @@ class UserType:
 class User(AbstractUser):
     user_type = CharField(verbose_name=_("User type"), max_length=1, choices=UserType.user_type_choices)
     email = EmailField(verbose_name=_("Email address"), unique=True)
-    telephone = CharField(verbose_name=_("Telephone"), max_length=11, null=True, blank=True, unique=True)
+    telephone = CharField(verbose_name=_("Telephone"), max_length=11, null=True, blank=True)
 
     registration_date = DateField(verbose_name=_("Registration date"), auto_now_add=True)
     last_payment = DateField(verbose_name=_("Last payment"), null=True, blank=True)
