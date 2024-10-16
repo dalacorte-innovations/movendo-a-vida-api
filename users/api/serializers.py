@@ -133,3 +133,36 @@ class RegisterSerializer(serializers.ModelSerializer):
         user.set_password(validated_data['password'])
         user.save()
         return user
+
+
+class PasswordResetConfirmSerializer(serializers.Serializer):
+    new_password1 = serializers.CharField(write_only=True)
+    new_password2 = serializers.CharField(write_only=True)
+
+    def validate(self, data):
+        password = data.get("new_password1")
+        password_confirm = data.get("new_password2")
+
+        if password != password_confirm:
+            raise serializers.ValidationError("As senhas não coincidem.")
+
+        if len(password) < 8:
+            raise serializers.ValidationError(
+                "A senha deve ter pelo menos 8 caracteres."
+            )
+
+        if not any(char.isupper() for char in password):
+            raise serializers.ValidationError(
+                "A senha deve ter pelo menos um caractere MAIÚSCULO."
+            )
+
+        if not any(char.isdigit() for char in password):
+            raise serializers.ValidationError("A senha deve ter pelo menos um número.")
+
+        if not any(char in "!@#$%&*" for char in password):
+            raise serializers.ValidationError(
+                "A senha deve ter pelo menos um caractere especial (@, #, %, &, *)."
+            )
+
+        return data
+    

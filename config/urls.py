@@ -1,6 +1,6 @@
 from django.contrib import admin
 from django.urls import include, path
-from users.api.viewsets import UserRegistrationView
+from users.api.viewsets import CustomPasswordResetConfirmViewAPI, PasswordResetRequest, UserRegistrationView
 from users.token import CombinedLoginView
 from django.conf import settings
 from django.conf.urls.static import static
@@ -15,6 +15,17 @@ urlpatterns += [
     path(f"{API_PREFIX}", include("routes.api_router"), name="api"),
     path(f"{API_PREFIX}rest-auth/login/", CombinedLoginView.as_view(), name="auth-token"),
     path(f'{API_PREFIX}register/', UserRegistrationView.as_view(), name='user-registration'),
+    
+    path(
+        f"{API_PREFIX}password_reset/",
+        PasswordResetRequest.as_view(),
+        name="password_reset_api",
+    ),
+    path(
+        f"{API_PREFIX}password_reset/confirm/<uidb64>/<token>/",
+        CustomPasswordResetConfirmViewAPI.as_view(),
+        name="password_reset_confirm_api",
+    ),
     
     path('accounts/', include('allauth.urls')),
 ]

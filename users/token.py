@@ -72,7 +72,6 @@ class CombinedLoginView(APIView):
                 if response.status_code != 200 or 'email' not in user_info:
                     return Response({'error': 'Failed to retrieve user information from Facebook.'}, status=status.HTTP_400_BAD_REQUEST)
 
-                # Verifique o social account pelo UID (ID do Facebook) e provider 'facebook'
                 social_account = SocialAccount.objects.filter(uid=user_info['id'], provider='facebook').first()
 
                 if social_account:
