@@ -200,11 +200,15 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 AUTH_USER_MODEL = 'users.User'
 
 CORS_ALLOWED_ORIGINS = [
-    "http://localhost:3000",
+    "http://localhost:3030",
+    "http://193.203.174.249:3030",
+    "http://193.203.174.249",
+    "https://plano-de-vida.dalacorteinnovations.com"
 ]
 
 CSRF_TRUSTED_ORIGINS = [
-    "http://localhost:3000",
+    'https://backend-pdv.dalacorteinnovations.com',
+    'https://plano-de-vida.dalacorteinnovations.com'
 ]
 
 CORS_ALLOW_CREDENTIALS = True
