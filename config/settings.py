@@ -109,9 +109,8 @@ EMAIL_HOST_PASSWORD = config("EMAIL_HOST_PASSWORD")
 DEFAULT_FROM_EMAIL = config("DEFAULT_FROM_EMAIL")
 
 if DEBUG:
-    INSTALLED_APPS += ['debug_toolbar']
     MIDDLEWARE += ['debug_toolbar.middleware.DebugToolbarMiddleware']
-    
+
 SOCIALACCOUNT_PROVIDERS = {
     'google': {
         'SCOPE': [
