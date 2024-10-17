@@ -4,7 +4,7 @@ services:
   database:
     image: postgres:13
     volumes:
-      - postgres_data:/var/lib/postgresql/data/
+      - postgres_data_pdv:/var/lib/postgresql/data/
     environment:
       POSTGRES_DB: ${POSTGRES_DB}
       POSTGRES_USER: ${POSTGRES_USER}
@@ -12,7 +12,7 @@ services:
     ports:
       - "5432:5432"
 
-  data-api:
+  data-api-pdv:
     build: .
     command: sh -c "python manage.py makemigrations && python manage.py migrate && python manage.py runserver 0.0.0.0:8000"
     volumes:
@@ -27,5 +27,6 @@ services:
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
       DATABASE_HOST: database
       DATABASE_PORT: 5432
+
 volumes:
-  postgres_data:
+  postgres_data_pdv:
