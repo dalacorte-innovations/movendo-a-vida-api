@@ -10,7 +10,7 @@ services:
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
     ports:
-      - "5432:5432"
+      - "5433:5432"
 
   data-api-pdv:
     build: .
@@ -27,6 +27,5 @@ services:
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
       DATABASE_HOST: database
       DATABASE_PORT: 5432
-
 volumes:
   postgres_data_pdv:
