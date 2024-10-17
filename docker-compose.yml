@@ -14,11 +14,11 @@ services:
 
   data-api-pdv:
     build: .
-    command: sh -c "python manage.py makemigrations && python manage.py migrate && python manage.py runserver 0.0.0.0:8000"
+    command: sh -c "python manage.py makemigrations && python manage.py migrate && python manage.py runserver 0.0.0.0:9000"
     volumes:
       - .:/app
     ports:
-      - "8083:8083"
+      - "9000:9000"
     depends_on:
       - database
     environment:
