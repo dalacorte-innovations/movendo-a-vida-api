@@ -19,13 +19,14 @@ urlpatterns += [
     path(
         f"{API_PREFIX}password_reset/",
         PasswordResetRequest.as_view(),
-        name="password_reset_api",
+        name="password_reset",
     ),
     path(
-        f"{API_PREFIX}password_reset/confirm/<uidb64>/<token>/",
+        f"password_reset/confirm/<uidb64>/<token>/",
         CustomPasswordResetConfirmViewAPI.as_view(),
-        name="password_reset_confirm_api",
+        name="password_reset_confirm",
     ),
+    
     
     path('accounts/', include('allauth.urls')),
 ]

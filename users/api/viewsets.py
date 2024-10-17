@@ -46,7 +46,7 @@ class PasswordResetRequest(APIView):
                     email_template_name = "password_reset_email_api"
                     c = {
                         "email": user.email,
-                        "domain": config("DOMAIN"),
+                        "domain": config("DOMAIN_APP"),
                         "site_name": "Portal CG Contadores",
                         "uid": urlsafe_base64_encode(force_bytes(user.pk)),
                         "token": default_token_generator.make_token(user),
