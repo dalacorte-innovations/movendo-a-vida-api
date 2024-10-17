@@ -1,0 +1,5 @@
+# .dockerignore
+# Excluir arquivos que você não deseja incluir no contexto do Docker, mas não inclua .git
+*.pyc
+__pycache__/
+.env
