@@ -11,7 +11,6 @@ stripe.api_key = settings.STRIPE_SECRET_KEY
 @csrf_exempt
 def stripe_webhook(request):
     payload = request.body
-
     try:
         event = stripe.Event.construct_from(
             json.loads(payload), stripe.api_key
@@ -27,7 +26,7 @@ def stripe_webhook(request):
         try:
             user = User.objects.get(stripe_customer_id=stripe_customer_id)
         except User.DoesNotExist:
-            user_email = session.get('customer_email')
+            user_email = session.get('customer_details').get('email')
             try:
                 user = User.objects.get(email=user_email)
                 user.stripe_customer_id = stripe_customer_id
