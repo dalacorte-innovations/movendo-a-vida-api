@@ -23,7 +23,10 @@ class CombinedLoginView(APIView):
                 return Response({
                     'token': token.key,
                     'name': f'{user.first_name} {user.last_name}',
-                    'user_type': user.user_type
+                    'user_type': user.user_type,
+                    'plan_name': user.plan,
+                    'last_payment': user.last_payment,
+                    'payment_made': user.payment_made
                 }, status=status.HTTP_200_OK)
             else:
                 return Response({"error": _("Invalid credentials")}, status=status.HTTP_401_UNAUTHORIZED)
@@ -50,7 +53,10 @@ class CombinedLoginView(APIView):
                     return Response({
                         'token': token.key,
                         'name': f'{user.first_name} {user.last_name}',
-                        'user_type': user.user_type
+                        'user_type': user.user_type,
+                        'plan_name': user.plan,
+                        'last_payment': user.last_payment,
+                        'payment_made': user.payment_made
                     }, status=status.HTTP_200_OK)
                 else:
                     return Response({'error': 'No social account found for this user'}, status=status.HTTP_404_NOT_FOUND)
@@ -79,7 +85,10 @@ class CombinedLoginView(APIView):
                     return Response({
                         'token': token.key,
                         'name': f'{user.first_name} {user.last_name}',
-                        'user_type': user.user_type
+                        'user_type': user.user_type,
+                        'plan_name': user.plan,
+                        'last_payment': user.last_payment,
+                        'payment_made': user.payment_made
                     }, status=status.HTTP_200_OK)
                 else:
                     return Response({'error': 'No social account found for this user'}, status=status.HTTP_404_NOT_FOUND)
