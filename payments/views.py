@@ -26,15 +26,18 @@ def stripe_webhook(request):
 
         try:
             user = User.objects.get(stripe_customer_id=stripe_customer_id)
-
-            user.last_payment = timezone.now()
-            user.payment_made = True
-            user.plan = product_name
-
-            user.next_payment = timezone.now() + timezone.timedelta(days=30)
-            user.save()
-
         except User.DoesNotExist:
-            return JsonResponse({'status': 'user not found'}, status=404)
+            user_email = session.get('customer_email')
+            try:
+                user = User.objects.get(email=user_email)
+                user.stripe_customer_id = stripe_customer_id
+            except User.DoesNotExist:
+                return JsonResponse({'status': 'user not found'}, status=404)
+
+        user.last_payment = timezone.now()
+        user.payment_made = True
+        user.plan = product_name
+        user.next_payment = timezone.now() + timezone.timedelta(days=30)
+        user.save()
 
     return JsonResponse({'status': 'success'}, status=200)
