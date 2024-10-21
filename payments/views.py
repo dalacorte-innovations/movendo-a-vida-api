@@ -22,12 +22,18 @@ def stripe_webhook(request):
     if event['type'] == 'checkout.session.completed':
         session = event['data']['object']
         stripe_customer_id = session.get('customer')
-        
+        product_name = session.get('metadata', {}).get('product_name')
+
         try:
             user = User.objects.get(stripe_customer_id=stripe_customer_id)
+
             user.last_payment = timezone.now()
             user.payment_made = True
+            user.plan = product_name
+
+            user.next_payment = timezone.now() + timezone.timedelta(days=30)
             user.save()
+
         except User.DoesNotExist:
             return JsonResponse({'status': 'user not found'}, status=404)
 
