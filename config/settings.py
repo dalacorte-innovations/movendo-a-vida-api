@@ -14,6 +14,7 @@ from decouple import config
 import os
 from pathlib import Path
 from dotenv import load_dotenv
+import stripe
 
 load_dotenv()
 
@@ -46,6 +47,7 @@ INSTALLED_APPS = [
 
 LOCAL_APPS = [
     'users',
+    'payments'
 ]
 
 THIRD_APPS = [
@@ -242,3 +244,5 @@ CORS_ALLOW_METHODS = [
     "POST",
     "PUT",
 ]
+
+STRIPE_SECRET_KEY = os.getenv('STRIPE_API_KEY')

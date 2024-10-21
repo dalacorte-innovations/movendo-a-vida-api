@@ -23,7 +23,6 @@ class CombinedLoginView(APIView):
                 return Response({
                     'token': token.key,
                     'name': f'{user.first_name} {user.last_name}',
-                    'restricted_access': user.restricted_access,
                     'user_type': user.user_type
                 }, status=status.HTTP_200_OK)
             else:
@@ -51,7 +50,6 @@ class CombinedLoginView(APIView):
                     return Response({
                         'token': token.key,
                         'name': f'{user.first_name} {user.last_name}',
-                        'restricted_access': user.restricted_access,
                         'user_type': user.user_type
                     }, status=status.HTTP_200_OK)
                 else:
@@ -81,7 +79,6 @@ class CombinedLoginView(APIView):
                     return Response({
                         'token': token.key,
                         'name': f'{user.first_name} {user.last_name}',
-                        'restricted_access': user.restricted_access,
                         'user_type': user.user_type
                     }, status=status.HTTP_200_OK)
                 else:

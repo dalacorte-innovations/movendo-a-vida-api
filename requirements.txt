@@ -16,3 +16,4 @@ google-auth-oauthlib
 google-auth-httplib2
 python-decouple
 django-debug-toolbar
+stripe

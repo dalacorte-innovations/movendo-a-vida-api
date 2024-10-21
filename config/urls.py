@@ -26,8 +26,8 @@ urlpatterns += [
         CustomPasswordResetConfirmViewAPI.as_view(),
         name="password_reset_confirm",
     ),
-    
-    
+
+
     path('accounts/', include('allauth.urls')),
 ]
 

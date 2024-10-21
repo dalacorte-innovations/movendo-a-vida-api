@@ -69,7 +69,6 @@ class RegisterSerializer(serializers.ModelSerializer):
                     user_type=UserType.USER_TYPE_COLLABORATOR,
                     registration_date=date.today(),
                     payment_made=True,
-                    restricted_access=False,
                     user_free=True,
                 )
                 user.set_unusable_password()
@@ -106,7 +105,6 @@ class RegisterSerializer(serializers.ModelSerializer):
                     user_type=UserType.USER_TYPE_COLLABORATOR,
                     registration_date=date.today(),
                     payment_made=True,
-                    restricted_access=False,
                     user_free=True,
                 )
                 user.set_unusable_password()
@@ -127,7 +125,6 @@ class RegisterSerializer(serializers.ModelSerializer):
             user_type=UserType.USER_TYPE_COLLABORATOR,
             registration_date=date.today(),
             payment_made=True,
-            restricted_access=False,
             user_free=True,
         )
         user.set_password(validated_data['password'])
