@@ -218,12 +218,12 @@ CORS_ALLOWED_ORIGINS = [
     "http://localhost:3030",
     "http://193.203.174.249:3030",
     "http://193.203.174.249",
-    "https://brunetto-cda.dalacorteinnovations.com"
+    "https://plano-de-vida.dalacorteinnovations.com"
 ]
 
 CSRF_TRUSTED_ORIGINS = [
-    'https://backend-brunetto.dalacorteinnovations.com',
-    "https://brunetto-cda.dalacorteinnovations.com"
+    'https://backend-pdv.dalacorteinnovations.com',
+    'https://plano-de-vida.dalacorteinnovations.com'
 ]
 
 CORS_ALLOW_CREDENTIALS = True
