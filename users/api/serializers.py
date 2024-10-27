@@ -12,7 +12,7 @@ User = get_user_model()
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ['id', 'username', 'email', 'full_name', 'phone', 
+        fields = ['id', 'username', 'email', 'first_name', 'phone', 
                   'user_type', 'stripe_customer_id', 'plan', 
                   'last_payment', 'next_payment', 'payment_made', 
                   'image']
@@ -76,8 +76,8 @@ class RegisterSerializer(serializers.ModelSerializer):
                 user = User.objects.create(
                     email=user_info['email'],
                     username=user_info['email'],
-                    first_name=user_info.get('given_name', ''),
-                    last_name=user_info.get('family_name', ''),
+                    first_name=user_info.get('first_name', ''),
+                    last_name=user_info.get('last_name', ''),
                     phone=validated_data.get('phone', ''),
                     user_type=UserType.USER_TYPE_COLLABORATOR,
                     payment_made=True,
@@ -93,7 +93,7 @@ class RegisterSerializer(serializers.ModelSerializer):
             try:
                 response = requests.get(
                     'https://graph.facebook.com/me',
-                    params={'fields': 'id,email,first_name,last_name', 'access_token': facebook_token}
+                    params={'fields': 'id, email, first_name, last_name', 'access_token': facebook_token}
                 )
                 user_info = response.json()
                 if response.status_code != 200 or 'email' not in user_info:

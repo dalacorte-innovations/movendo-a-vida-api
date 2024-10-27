@@ -17,7 +17,7 @@ class User(AbstractUser):
     user_type = models.CharField(max_length=1, choices=UserType.user_type_choices)
     email = models.EmailField(unique=True)
     
-    full_name = models.CharField(max_length=255, verbose_name=_("Full Name"))
+    full_name = models.CharField(max_length=255, verbose_name=_("Full Name"), blank=True, null=True)
     phone = models.CharField(max_length=20, verbose_name=_("Phone Number"), blank=True, null=True)
     image = models.ImageField(upload_to="user_images/", verbose_name=_("Profile Picture"), blank=True, null=True)
     
@@ -27,7 +27,7 @@ class User(AbstractUser):
     next_payment = models.DateField(null=True, blank=True)
     payment_made = models.BooleanField(default=False)
     
-    referral_code = models.CharField(max_length=10, unique=True, blank=True, null=True)  # Novo campo
+    referral_code = models.CharField(max_length=10, unique=True, blank=True, null=True)
 
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = ['username', 'full_name']
@@ -40,8 +40,12 @@ class User(AbstractUser):
         return self.email
 
     def save(self, *args, **kwargs):
+        if not self.full_name and self.first_name:
+            self.full_name = self.first_name
+        
         if not self.referral_code:
             self.referral_code = self.generate_referral_code()
+        
         super().save(*args, **kwargs)
 
     def generate_referral_code(self):

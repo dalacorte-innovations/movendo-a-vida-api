@@ -7,6 +7,13 @@ import sys
 def main():
     """Run administrative tasks."""
     os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'config.settings')
+    
+    environment = os.getenv('ENVIRONMENT', 'Not set')
+    database_host = os.getenv('DATABASE_HOST', 'Not set')
+    
+    print(f"Current Environment: {environment}")
+    print(f"Database Host: {database_host}")
+
     try:
         from django.core.management import execute_from_command_line
     except ImportError as exc:

@@ -25,7 +25,7 @@ class CombinedLoginView(APIView):
                 image_url = request.build_absolute_uri(user.image.url) if user.image else None
                 
                 referral_count = user.referrals_made.count()
-
+                
                 return Response({
                     'token': token.key,
                     'name': f'{user.first_name} {user.last_name}',
