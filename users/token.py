@@ -1,3 +1,4 @@
+from django.contrib.auth import get_user_model
 from rest_framework.authtoken.models import Token
 from rest_framework.response import Response
 from rest_framework import status
@@ -7,6 +8,8 @@ from allauth.socialaccount.models import SocialAccount
 from django.utils.translation import gettext_lazy as _
 from rest_framework.permissions import AllowAny
 import requests
+
+User = get_user_model()
 
 class CombinedLoginView(APIView):
     permission_classes = [AllowAny]
@@ -19,6 +22,9 @@ class CombinedLoginView(APIView):
             user = authenticate(request, username=username, password=password)
             if user is not None:
                 token, created = Token.objects.get_or_create(user=user)
+                image_url = request.build_absolute_uri(user.image.url) if user.image else None
+                
+                referral_count = user.referrals_made.count()
 
                 return Response({
                     'token': token.key,
@@ -26,7 +32,12 @@ class CombinedLoginView(APIView):
                     'user_type': user.user_type,
                     'plan_name': user.plan,
                     'last_payment': user.last_payment,
-                    'payment_made': user.payment_made
+                    'payment_made': user.payment_made,
+                    'email': user.email,
+                    'phone': user.phone,
+                    'image_url': image_url,
+                    'referral_code': user.referral_code,
+                    'referral_count': referral_count
                 }, status=status.HTTP_200_OK)
             else:
                 return Response({"error": _("Invalid credentials")}, status=status.HTTP_401_UNAUTHORIZED)
@@ -49,6 +60,9 @@ class CombinedLoginView(APIView):
                 if social_account:
                     user = social_account.user
                     token, created = Token.objects.get_or_create(user=user)
+                    image_url = request.build_absolute_uri(user.image.url) if user.image else None
+
+                    referral_count = user.referrals_made.count()
 
                     return Response({
                         'token': token.key,
@@ -56,7 +70,12 @@ class CombinedLoginView(APIView):
                         'user_type': user.user_type,
                         'plan_name': user.plan,
                         'last_payment': user.last_payment,
-                        'payment_made': user.payment_made
+                        'payment_made': user.payment_made,
+                        'email': user.email,
+                        'phone': user.phone,
+                        'image_url': image_url,
+                        'referral_code': user.referral_code,
+                        'referral_count': referral_count
                     }, status=status.HTTP_200_OK)
                 else:
                     return Response({'error': 'No social account found for this user'}, status=status.HTTP_404_NOT_FOUND)
@@ -81,6 +100,9 @@ class CombinedLoginView(APIView):
                 if social_account:
                     user = social_account.user
                     token, created = Token.objects.get_or_create(user=user)
+                    image_url = request.build_absolute_uri(user.image.url) if user.image else None
+
+                    referral_count = user.referrals_made.count()
 
                     return Response({
                         'token': token.key,
@@ -88,7 +110,12 @@ class CombinedLoginView(APIView):
                         'user_type': user.user_type,
                         'plan_name': user.plan,
                         'last_payment': user.last_payment,
-                        'payment_made': user.payment_made
+                        'payment_made': user.payment_made,
+                        'email': user.email,
+                        'phone': user.phone,
+                        'image_url': image_url,
+                        'referral_code': user.referral_code,
+                        'referral_count': referral_count
                     }, status=status.HTTP_200_OK)
                 else:
                     return Response({'error': 'No social account found for this user'}, status=status.HTTP_404_NOT_FOUND)
