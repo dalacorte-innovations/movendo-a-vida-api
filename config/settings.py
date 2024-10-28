@@ -47,7 +47,8 @@ INSTALLED_APPS = [
 
 LOCAL_APPS = [
     'users',
-    'payments'
+    'payments',
+    'core'
 ]
 
 THIRD_APPS = [
