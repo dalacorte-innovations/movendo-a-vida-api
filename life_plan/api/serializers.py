@@ -15,17 +15,35 @@ class LifePlanSerializer(serializers.ModelSerializer):
     items_for_plan = serializers.JSONField(write_only=True)
     items = LifePlanItemSerializer(many=True, read_only=True)
     total_per_category = serializers.SerializerMethodField()
+    profit_loss_by_date = serializers.SerializerMethodField()
 
     class Meta:
         model = LifePlan
-        fields = ['id', 'user', 'name', 'created_at', 'updated_at', 'items_for_plan', 'items', 'total_per_category']
-        read_only_fields = ['id', 'user', 'created_at', 'updated_at', 'items', 'total_per_category']
+        fields = ['id', 'user', 'name', 'created_at', 'updated_at', 'items_for_plan', 'items', 'total_per_category', 'profit_loss_by_date']
+        read_only_fields = ['id', 'user', 'created_at', 'updated_at', 'items', 'total_per_category', 'profit_loss_by_date']
 
     def get_total_per_category(self, obj):
         totals = defaultdict(Decimal)
         for item in obj.items.all():
             totals[item.category] += Decimal(item.value)
         return {category: float(total) for category, total in totals.items()}
+
+    def get_profit_loss_by_date(self, obj):
+        profit_loss_by_date = defaultdict(Decimal)
+
+        receitas_by_date = defaultdict(Decimal)
+        custos_by_date = defaultdict(Decimal)
+
+        for item in obj.items.all():
+            if item.category == "receitas":
+                receitas_by_date[item.date] += Decimal(item.value)
+            elif item.category in ["estudos", "custos"]:
+                custos_by_date[item.date] += Decimal(item.value)
+
+        for date in receitas_by_date:
+            profit_loss_by_date[date] = receitas_by_date[date] - custos_by_date.get(date, Decimal(0))
+
+        return [{"date": date, "profit_loss": float(value)} for date, value in profit_loss_by_date.items()]
 
     def parse_date(self, date_str):
         try:

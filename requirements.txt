@@ -18,3 +18,4 @@ python-decouple
 django-debug-toolbar
 stripe
 python-dateutil
+reportlab
