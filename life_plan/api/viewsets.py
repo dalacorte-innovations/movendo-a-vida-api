@@ -1,9 +1,9 @@
 import io
+import csv
 from rest_framework import viewsets
 from rest_framework.permissions import IsAuthenticated
 from life_plan.models import LifePlan, LifePlanItem
 from .serializers import LifePlanSerializer, LifePlanItemSerializer
-import csv
 from django.http import HttpResponse
 from rest_framework.decorators import action
 from rest_framework.response import Response
@@ -13,6 +13,7 @@ from reportlab.lib import colors
 from reportlab.lib.units import mm
 from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer, PageBreak
 from reportlab.lib.styles import ParagraphStyle
+from rest_framework import status
 
 
 class LifePlanViewSet(viewsets.ModelViewSet):
@@ -25,7 +26,14 @@ class LifePlanViewSet(viewsets.ModelViewSet):
 
     def perform_create(self, serializer):
         serializer.save(user=self.request.user)
-
+    
+    def update(self, request, *args, **kwargs):
+        instance = self.get_object()
+        serializer = self.get_serializer(instance, data=request.data, partial=True)
+        serializer.is_valid(raise_exception=True)
+        self.perform_update(serializer)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+    
     @action(detail=True, methods=['get'], url_path='export-csv')
     def export_csv(self, request, pk=None):
         life_plan = self.get_object()

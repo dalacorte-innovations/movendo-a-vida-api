@@ -4,6 +4,7 @@ from datetime import datetime
 from collections import defaultdict
 from decimal import Decimal
 
+
 class LifePlanItemSerializer(serializers.ModelSerializer):
     date = serializers.DateField()
 
@@ -11,15 +12,23 @@ class LifePlanItemSerializer(serializers.ModelSerializer):
         model = LifePlanItem
         fields = ['category', 'name', 'value', 'date', 'meta']
 
+
 class LifePlanSerializer(serializers.ModelSerializer):
-    items_for_plan = serializers.JSONField(write_only=True)
+    items_for_plan = serializers.JSONField(write_only=True, required=False)
+    years = serializers.ListField(
+        child=serializers.IntegerField(min_value=1900),
+        required=False
+    )
     items = LifePlanItemSerializer(many=True, read_only=True)
     total_per_category = serializers.SerializerMethodField()
     profit_loss_by_date = serializers.SerializerMethodField()
 
     class Meta:
         model = LifePlan
-        fields = ['id', 'user', 'name', 'created_at', 'updated_at', 'items_for_plan', 'items', 'total_per_category', 'profit_loss_by_date']
+        fields = [
+            'id', 'user', 'name', 'created_at', 'updated_at', 'items_for_plan', 'years', 'items',
+            'total_per_category', 'profit_loss_by_date'
+        ]
         read_only_fields = ['id', 'user', 'created_at', 'updated_at', 'items', 'total_per_category', 'profit_loss_by_date']
 
     def get_total_per_category(self, obj):
@@ -30,7 +39,6 @@ class LifePlanSerializer(serializers.ModelSerializer):
 
     def get_profit_loss_by_date(self, obj):
         profit_loss_by_date = defaultdict(Decimal)
-
         receitas_by_date = defaultdict(Decimal)
         custos_by_date = defaultdict(Decimal)
 
@@ -45,44 +53,78 @@ class LifePlanSerializer(serializers.ModelSerializer):
 
         return [{"date": date, "profit_loss": float(value)} for date, value in profit_loss_by_date.items()]
 
-    def parse_date(self, date_str):
-        try:
-            return datetime.strptime(date_str, '%Y-%m-%d').date()
-        except ValueError:
-            return datetime.strptime(date_str, '%d;%m;%Y').date()
+    def create_default_items(self, life_plan, years):
+        """Cria itens padrão para cada mês de cada ano especificado."""
+        default_items = {
+            'investimentos': [
+                "Reserva Inicial", "Poupança", "Investimentos Planos",
+                "Investimentos Planos", "Investimentos Planos", "Poupança Interâmbio"
+            ],
+            'empresas': ["Comprar Empresas", "Criar Empresas"],
+            'realizacoes': [
+                "Reforma no Apartamento", "Casamento", "Novo Apartamento",
+                "Carro Novo", "Filhos", "Casa na Praia"
+            ],
+        }
+
+        for year in years:
+            for month in range(1, 13):
+                for category, item_names in default_items.items():
+                    for name in item_names:
+                        LifePlanItem.objects.create(
+                            life_plan=life_plan,
+                            category=category,
+                            name=name,
+                            value=0,
+                            date=datetime.strptime(f"{year}-{month:02d}-01", "%Y-%m-%d").date(),
+                            meta=0
+                        )
 
     def create(self, validated_data):
-        items_data = validated_data.pop('items_for_plan', {})
+        """Criação de um LifePlan e seus itens padrão."""
+        items_for_plan = validated_data.pop('items_for_plan', None)
+        years = validated_data.pop('years', None)
+
+        if not years:
+            current_year = datetime.now().year
+            years = [current_year]
+
         life_plan = LifePlan.objects.create(**validated_data)
 
-        for category_name, category_data in items_data.items():
-            for item_data in category_data['items']:
-                LifePlanItem.objects.create(
-                    life_plan=life_plan,
-                    category=category_name,
-                    name=item_data['name'],
-                    value=item_data['value'],
-                    date=self.parse_date(item_data['date']),
-                    meta=item_data.get('meta', 0) or 0
-                )
+        if not items_for_plan:
+            self.create_default_items(life_plan, years)
+        else:
+            for category_name, category_data in items_for_plan.items():
+                for item_data in category_data['items']:
+                    LifePlanItem.objects.create(
+                        life_plan=life_plan,
+                        category=category_name,
+                        name=item_data['name'],
+                        value=item_data['value'],
+                        date=datetime.strptime(item_data['date'], "%Y-%m-%d").date(),
+                        meta=item_data.get('meta', 0) or 0
+                    )
 
         return life_plan
 
     def update(self, instance, validated_data):
-        items_data = validated_data.pop('items_for_plan', {})
+        """Atualizar um LifePlan e seus itens."""
+        items_for_plan = validated_data.pop('items_for_plan', None)
         instance.name = validated_data.get('name', instance.name)
         instance.save()
 
-        instance.items.all().delete()
-        for category_name, category_data in items_data.items():
-            for item_data in category_data['items']:
-                LifePlanItem.objects.create(
-                    life_plan=instance,
-                    category=category_name,
-                    name=item_data['name'],
-                    value=item_data['value'],
-                    date=self.parse_date(item_data['date']),
-                    meta=item_data.get('meta', 0) or 0
-                )
+        if items_for_plan:
+            instance.items.all().delete()
+
+            for category_name, category_data in items_for_plan.items():
+                for item_data in category_data['items']:
+                    LifePlanItem.objects.create(
+                        life_plan=instance,
+                        category=category_name,
+                        name=item_data['name'],
+                        value=item_data['value'],
+                        date=datetime.strptime(item_data['date'], "%Y-%m-%d").date(),
+                        meta=item_data.get('meta', 0) or 0
+                    )
 
         return instance
