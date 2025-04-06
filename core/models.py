@@ -26,6 +26,7 @@ class Feedback(models.Model):
         choices=[(i, f"{i} Star(s)") for i in range(1, 6)],
         default=0
     )
+    profession = models.CharField(max_length=100, blank=True, null=True)
 
     comment = models.TextField(
         verbose_name=_("Comment"),
@@ -53,6 +54,13 @@ class Feedback(models.Model):
         choices=FEEDBACK_MODE_CHOICES,
         verbose_name=_("Feedback Mode"),
         default=PRIVATE
+    )
+
+    active_landing_page = models.BooleanField(
+        default=False,
+        verbose_name=_("Active Landing Page"),
+        blank=True,
+        null=True
     )
 
     created_at = models.DateTimeField(auto_now_add=True, verbose_name=_("Created At"))

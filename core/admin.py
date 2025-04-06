@@ -2,19 +2,19 @@ from django.contrib import admin
 from .models import Feedback, EmailMessage
 
 class FeedbackAdmin(admin.ModelAdmin):
-    list_display = ('user', 'stars', 'category', 'feedback_mode', 'created_at')
-    search_fields = ('user__email', 'comment', 'category')
-    list_filter = ('stars', 'category', 'feedback_mode', 'created_at')
+    list_display = ('user', 'stars', 'category', 'feedback_mode', 'active_landing_page', 'created_at', 'profession')
+    search_fields = ('user__email', 'comment', 'category', 'profession')
+    list_filter = ('stars', 'category', 'feedback_mode', 'created_at', 'active_landing_page')
 
     fieldsets = (
         (None, {
             'fields': ('user',)
         }),
         ('Feedback Details', {
-            'fields': ('stars', 'comment', 'category', 'feedback_mode')
+            'fields': ('stars', 'comment', 'category', 'feedback_mode', 'profession')
         }),
         ('Additional Information', {
-            'fields': ('created_at',),
+            'fields': ('active_landing_page', 'created_at'),
         }),
     )
 

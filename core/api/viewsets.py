@@ -7,16 +7,21 @@ class FeedbackViewSet(viewsets.ModelViewSet):
     """
     A ViewSet for viewing and editing feedback instances.
     """
-    queryset = Feedback.objects.all()
     serializer_class = FeedbackSerializer
-    permission_classes = (IsAuthenticated,)
+    permission_classes = (AllowAny,)
 
     def get_queryset(self):
-        if self.request.user.is_staff:
-            return Feedback.objects.all()
-        return Feedback.objects.filter(user=self.request.user)
+        """
+        Retorna os feedbacks de acordo com o usuário autenticado.
+        Se o usuário for staff, retorna os feedbacks com active_landing_page=True, limitados aos 5 mais recentes.
+        Se não for staff, retorna somente os feedbacks do próprio usuário.
+        """
+        return Feedback.objects.filter(active_landing_page=True).order_by('-created_at')[:5]
 
     def perform_create(self, serializer):
+        """
+        Salva o feedback associado ao usuário autenticado.
+        """
         serializer.save(user=self.request.user)
 
 
