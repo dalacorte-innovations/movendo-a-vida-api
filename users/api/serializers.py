@@ -1,10 +1,12 @@
+import requests
 from django.contrib.auth import get_user_model
 from rest_framework import serializers
 from django.contrib.auth.password_validation import validate_password
 from datetime import date
-from users.models import UserReferral, UserType
+from plans_subscriptions.models import Subscription
+from users.models import UserReferral, UserType, WithdrawalRequest
 from allauth.socialaccount.models import SocialAccount
-import requests
+from django.db.models import Sum
 
 User = get_user_model()
 
@@ -12,19 +14,75 @@ User = get_user_model()
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ['id', 'username', 'email', 'first_name', 'phone', 
-                  'user_type', 'stripe_customer_id', 'plan', 
-                  'last_payment', 'next_payment', 'payment_made', 
-                  'image']
-        read_only_fields = ['id', 'username', 'user_type', 'stripe_customer_id']
+        fields = ['id', 'username', 'email', 'first_name', 'phone',
+                  'user_type', 'stripe_customer_id', 'plan',
+                  'last_payment', 'next_payment', 'payment_made',
+                  'image', 'pix_key', 'terms_accepted', 'terms_accepted_date',
+                  'privacy_accepted', 'privacy_accepted_date']
+        read_only_fields = ['id', 'username', 'user_type', 'stripe_customer_id',
+                           'terms_accepted_date', 'privacy_accepted_date']
 
     def update(self, instance, validated_data):
         image = validated_data.pop('image', None)
         if image:
             instance.image = image
 
+        if 'terms_accepted' in validated_data and validated_data['terms_accepted'] and not instance.terms_accepted:
+            from django.utils import timezone
+            instance.terms_accepted_date = timezone.now()
+
+        if 'privacy_accepted' in validated_data and validated_data['privacy_accepted'] and not instance.privacy_accepted:
+            from django.utils import timezone
+            instance.privacy_accepted_date = timezone.now()
+
         return super().update(instance, validated_data)
     
+class WithdrawalRequestSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = WithdrawalRequest
+        fields = ["id", "user", "amount", "request_date", "status"]
+
+class WithdrawalRequestSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = WithdrawalRequest
+        fields = ["id", "amount", "request_date", "status"]
+        read_only_fields = ["id", "request_date", "status"]
+
+    def validate_amount(self, value):
+        if value < 50:
+            raise serializers.ValidationError("O valor mínimo para saque é R$ 50,00.")
+
+        user = self.context['request'].user
+
+        active_subscriptions = Subscription.objects.filter(active=True).select_related('plan')
+        available_amount = 0
+        for subscription in active_subscriptions:
+            plan_name = subscription.plan.name if subscription.plan else ""
+            if plan_name == "Basic":
+                available_amount += 10
+            elif plan_name == "Premium":
+                available_amount += 20
+            elif plan_name == "Profissional":
+                available_amount += 270
+
+        completed_withdrawals = WithdrawalRequest.objects.filter(user=user, status="APPROVED")
+        total_completed = completed_withdrawals.aggregate(total=Sum('amount'))['total'] or 0
+
+        pending_withdrawals = WithdrawalRequest.objects.filter(user=user, status="PENDING")
+        total_pending = pending_withdrawals.aggregate(total=Sum('amount'))['total'] or 0
+
+        remaining_amount = available_amount - total_completed - total_pending
+
+        if value > remaining_amount:
+            raise serializers.ValidationError(f"Saldo insuficiente. Você tem apenas R$ {remaining_amount:.2f} disponível.")
+
+        return value
+
+    def create(self, validated_data):
+        user = self.context['request'].user
+        validated_data['user'] = user
+        return super().create(validated_data)
+
 
 class RegisterSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True, required=False, validators=[validate_password])

@@ -47,7 +47,7 @@ INSTALLED_APPS = [
 
 LOCAL_APPS = [
     'users',
-    'payments',
+    'plans_subscriptions',
     'core',
     'life_plan'
 ]

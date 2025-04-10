@@ -18,7 +18,7 @@ from reportlab.lib.enums import TA_CENTER, TA_RIGHT, TA_LEFT
 from reportlab.lib.colors import HexColor, Color
 from life_plan.models import LifePlan, LifePlanItem
 from life_plan.api.serializers import LifePlanSerializer, LifePlanItemSerializer
-
+from rest_framework import viewsets, serializers, status
 
 class LifePlanViewSet(viewsets.ModelViewSet):
     queryset = LifePlan.objects.all()
@@ -29,7 +29,17 @@ class LifePlanViewSet(viewsets.ModelViewSet):
         return LifePlan.objects.filter(user=self.request.user)
 
     def perform_create(self, serializer):
+        if LifePlan.objects.filter(user=self.request.user).exists():
+            raise serializers.ValidationError("Você já possui um plano de vida. Não é possível criar outro.")
         serializer.save(user=self.request.user)
+
+    def create(self, request, *args, **kwargs):
+        if LifePlan.objects.filter(user=request.user).exists():
+            return Response(
+                {"error": "Você já possui um plano de vida. Não é possível criar outro."},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        return super().create(request, *args, **kwargs)
     
     def update(self, request, *args, **kwargs):
         instance = self.get_object()

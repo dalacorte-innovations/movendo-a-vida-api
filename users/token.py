@@ -7,6 +7,9 @@ from django.contrib.auth import authenticate
 from allauth.socialaccount.models import SocialAccount
 from django.utils.translation import gettext_lazy as _
 from rest_framework.permissions import AllowAny
+from users.models import UserReferral
+from django.db.models import Count
+from life_plan.models import LifePlan
 import requests
 
 User = get_user_model()
@@ -19,13 +22,14 @@ class CombinedLoginView(APIView):
             username = request.data.get('username')
             password = request.data.get('password')
 
+            print(username, password)
             user = authenticate(request, username=username, password=password)
             if user is not None:
+                LifePlan.create_default_plan(user=user)
                 token, created = Token.objects.get_or_create(user=user)
                 image_url = request.build_absolute_uri(user.image.url) if user.image else None
-                
-                referral_count = user.referrals_made.count()
-                
+                referral_count = UserReferral.objects.values('referred_by').annotate(referral_count=Count('referred_user')).aggregate(total_referrals=Count('referred_by'))['total_referrals'] or 0
+
                 return Response({
                     'token': token.key,
                     'name': f'{user.first_name} {user.last_name}',
@@ -59,10 +63,12 @@ class CombinedLoginView(APIView):
 
                 if social_account:
                     user = social_account.user
+                    LifePlan.create_default_plan(user=user)
+
                     token, created = Token.objects.get_or_create(user=user)
                     image_url = request.build_absolute_uri(user.image.url) if user.image else None
 
-                    referral_count = user.referrals_made.count()
+                    referral_count = UserReferral.objects.values('referred_by').annotate(referral_count=Count('referred_user')).aggregate(total_referrals=Count('referred_by'))['total_referrals'] or 0
 
                     return Response({
                         'token': token.key,
@@ -99,10 +105,12 @@ class CombinedLoginView(APIView):
 
                 if social_account:
                     user = social_account.user
+                    LifePlan.create_default_plan(user=user)
+
                     token, created = Token.objects.get_or_create(user=user)
                     image_url = request.build_absolute_uri(user.image.url) if user.image else None
 
-                    referral_count = user.referrals_made.count()
+                    referral_count = UserReferral.objects.values('referred_by').annotate(referral_count=Count('referred_user')).aggregate(total_referrals=Count('referred_by'))['total_referrals'] or 0
 
                     return Response({
                         'token': token.key,
