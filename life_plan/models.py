@@ -40,6 +40,12 @@ class LifePlan(models.Model):
                 {"name": "Freelance", "value": 1000.00, "meta": 1000.00},
                 {"name": "Outras Receitas", "value": 500.00, "meta": 500.00},
             ],
+            'renda_extra': [
+                {"name": "Aluguel", "value": 800.00, "meta": 9600.00},
+                {"name": "Dividendos", "value": 300.00, "meta": 3600.00},
+                {"name": "Venda de Produtos", "value": 400.00, "meta": 4800.00},
+                {"name": "Plataforma", "value": 4420.00, "meta": 6000.00},
+            ],
             'custos': [
                 {"name": "Moradia", "value": 1800.00, "meta": 1800.00},
                 {"name": "Alimentação", "value": 1200.00, "meta": 1200.00},
@@ -85,7 +91,7 @@ class LifePlan(models.Model):
         for month in range(1, 13):
             date = datetime(current_year, month, 1).date()
 
-            for category in ['receitas', 'custos', 'estudos', 'investimentos', 'intercambio', 'pessoais']:
+            for category in ['receitas', 'renda_extra', 'custos', 'estudos', 'investimentos', 'intercambio', 'pessoais']:
                 for item in default_items.get(category, []):
                     LifePlanItem.objects.create(
                         life_plan=plan,
@@ -119,10 +125,11 @@ class LifePlan(models.Model):
                     )
 
             receitas_total = sum(item["value"] for item in default_items.get('receitas', []))
+            renda_extra_total = sum(item["value"] for item in default_items.get('renda_extra', []))
             custos_total = sum(item["value"] for item in default_items.get('custos', []))
             estudos_total = sum(item["value"] for item in default_items.get('estudos', []))
-            lucro = receitas_total - (custos_total + estudos_total)
-
+            
+            lucro = (receitas_total + renda_extra_total) - (custos_total + estudos_total)
             LifePlanItem.objects.create(
                 life_plan=plan,
                 category='lucro_prejuizo',

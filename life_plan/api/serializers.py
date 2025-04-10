@@ -40,16 +40,27 @@ class LifePlanSerializer(serializers.ModelSerializer):
     def get_profit_loss_by_date(self, obj):
         profit_loss_by_date = defaultdict(Decimal)
         receitas_by_date = defaultdict(Decimal)
+        renda_extra_by_date = defaultdict(Decimal)
         custos_by_date = defaultdict(Decimal)
 
         for item in obj.items.all():
             if item.category == "receitas":
                 receitas_by_date[item.date] += Decimal(item.value)
+            elif item.category == "renda_extra":
+                renda_extra_by_date[item.date] += Decimal(item.value)
             elif item.category in ["estudos", "custos"]:
                 custos_by_date[item.date] += Decimal(item.value)
 
-        for date in receitas_by_date:
-            profit_loss_by_date[date] = receitas_by_date[date] - custos_by_date.get(date, Decimal(0))
+        all_dates = set(list(receitas_by_date.keys()) +
+                    list(renda_extra_by_date.keys()) +
+                    list(custos_by_date.keys()))
+
+        for date in all_dates:
+            profit_loss_by_date[date] = (
+                receitas_by_date.get(date, Decimal(0)) +
+                renda_extra_by_date.get(date, Decimal(0)) -
+                custos_by_date.get(date, Decimal(0))
+            )
 
         return [{"date": date, "profit_loss": float(value)} for date, value in profit_loss_by_date.items()]
 
@@ -65,6 +76,7 @@ class LifePlanSerializer(serializers.ModelSerializer):
                 "Reforma no Apartamento", "Casamento", "Novo Apartamento",
                 "Carro Novo", "Filhos", "Casa na Praia"
             ],
+            'renda_extra': ["Aluguel", "Dividendos", "Venda de Produtos", "Plataforma"],
         }
 
         for year in years:
